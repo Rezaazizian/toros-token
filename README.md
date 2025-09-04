@@ -21,6 +21,6 @@ A next-generation DeFi token on Solana featuring staking rewards, community gove
 ## 🔗 Links
 
 - **Explorer**: https://explorer.solana.com/address/P1QJ6CXJtmLJzgg9NXLiDjy7nbGrfGYwKbAcU4F7C8G?cluster=devnet
-- **Metadata**: https://raw.githubusercontent.com/YOUR_USERNAME/toros-token/main/metadata.json
-- **Logo**: https://raw.githubusercontent.com/YOUR_USERNAME/toros-token/main/logo.png
+- **Metadata**: https://raw.githubusercontent.com/Rezaazizian/toros-token/main/metadata.json
+- **Logo**: https://raw.githubusercontent.com/Rezaazizian/toros-token/main/logo.png
 
