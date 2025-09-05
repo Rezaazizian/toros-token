@@ -1,26 +1,7 @@
 {
   "name": "Toros Token",
   "symbol": "TRS",
-  "description": "Toros Token (TRS) - A next-generation DeFi token on Solana featuring staking rewards, community governance, and seamless DEX integration for enhanced yield and participation.",
+  "description": "DeFi token on Solana with staking and governance",
   "image": "https://raw.githubusercontent.com/Rezaazizian/toros-token/main/logo.png",
-  "external_url": "https://github.com/Rezaazizian/toros-token",
-  "properties": {
-    "files": [
-      {
-        "uri": "https://raw.githubusercontent.com/Rezaazizian/toros-token/main/logo.png",
-        "type": "image/png"
-      }
-    ],
-    "category": "cryptocurrency",
-    "creators": [
-      {
-        "address": "GLHYAbnhwzN1SjFgs2XgB9QKoNbJxnoKNmESEnZeGHRP",
-        "share": 100
-      }
-    ]
-  },
-  "address": "P1QJ6CXJtmLJzgg9NXLiDjy7nbGrfGYwKbAcU4F7C8G",
-  "chainId": 103,
-  "decimals": 9,
-  "tags": ["defi", "staking", "governance", "solana-ecosystem", "yield"]
+  "address": "P1QJ6CXJtmLJzgg9NXLiDjy7nbGrfGYwKbAcU4F7C8G"
 }
