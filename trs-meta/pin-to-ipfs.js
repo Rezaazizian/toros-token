@@ -1,11 +1,9 @@
-﻿import fs from 'fs';
-import path from 'path';
-import fetch from 'node-fetch';
+﻿const fs = require(''fs'');
+const fetch = require(''node-fetch'');
 
 const API = 'https://api.web3.storage/upload';
 
 async function pinFile(filePath, token) {
-  const stat = fs.statSync(filePath);
   const stream = fs.createReadStream(filePath);
   const res = await fetch(API, {
     method: 'POST',
@@ -14,7 +12,9 @@ async function pinFile(filePath, token) {
   });
   if (!res.ok) throw new Error(`Upload failed: ${res.status} ${await res.text()}`);
   const json = await res.json();
-  return json.cid;
+  const cid = json.cid || (json && json.cid);
+  if (!cid) throw new Error('No CID in response');
+  return cid;
 }
 
 async function main() {
