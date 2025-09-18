@@ -1,0 +1,18 @@
+﻿{
+    "cluster":  "devnet",
+    "mint":  "P1QJ6CXJtmLJzgg9NXLiDjy7nbGrfGYwKbAcU4F7C8G",
+    "symbol":  "TRS",
+    "metadata_uri":  "https://raw.githubusercontent.com/Rezaazizian/toros-token/main/metadata.json",
+    "logo":  "https://raw.githubusercontent.com/Rezaazizian/toros-token/main/logo.png",
+    "explorers":  {
+                      "solana_explorer":  "https://explorer.solana.com/address/P1QJ6CXJtmLJzgg9NXLiDjy7nbGrfGYwKbAcU4F7C8G?cluster=devnet",
+                      "solscan":  "https://solscan.io/token/P1QJ6CXJtmLJzgg9NXLiDjy7nbGrfGYwKbAcU4F7C8G?cluster=devnet"
+                  },
+    "wallets":  {
+                    "treasury":  "3fnZxDn2TDwdC1BMvhWsQMS54Bx1DExzja5xzSrAX5a3",
+                    "phantom_test":  "GLHYAbnhwzN1SjFgs2XgB9QKoNbJxnoKNmESEnZeGHRP"
+                },
+    "transactions":  [
+
+                     ]
+}
