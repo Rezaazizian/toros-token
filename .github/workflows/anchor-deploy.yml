@@ -1,0 +1,72 @@
+name: anchor-deploy-devnet
+
+on:
+  workflow_dispatch:
+    inputs:
+      cluster:
+        description: "Solana cluster"
+        required: true
+        default: devnet
+      program:
+        description: "Program to deploy (anchor workspace member)"
+        required: true
+        default: trs_staking
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      ANCHOR_WALLET_JSON: ${{ secrets.ANCHOR_WALLET }}
+      RPC_URL: ${{ secrets.SOLANA_RPC_URL || 'https://api.devnet.solana.com' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: wasm32-unknown-unknown
+          profile: minimal
+          override: true
+
+      - name: Install Solana CLI
+        run: |
+          sh -c "$(curl -sSfL https://release.solana.com/stable/install)" <<< y
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+
+      - name: Install Anchor CLI
+        run: |
+          cargo install --git https://github.com/coral-xyz/anchor anchor-cli --locked
+
+      - name: Configure wallet and RPC
+        run: |
+          mkdir -p $HOME/.config/solana
+          if [ -z "$ANCHOR_WALLET_JSON" ]; then
+            echo "Missing secret ANCHOR_WALLET" && exit 1
+          fi
+          echo "$ANCHOR_WALLET_JSON" > $HOME/.config/solana/id.json
+          chmod 600 $HOME/.config/solana/id.json
+          solana config set --url "$RPC_URL" --keypair $HOME/.config/solana/id.json
+
+      - name: Build workspace
+        working-directory: toros-solana
+        run: anchor build
+
+      - name: Deploy program
+        working-directory: toros-solana
+        env:
+          ANCHOR_PROVIDER_URL: ${{ env.RPC_URL }}
+          ANCHOR_WALLET: ${{ github.workspace }}/.github/anchor_wallet_unused
+        run: |
+          # Anchor uses ~/.config/solana/id.json by default; explicit export for clarity
+          export ANCHOR_WALLET=$HOME/.config/solana/id.json
+          anchor deploy -p "${{ github.event.inputs.program }}" --provider.cluster "${{ github.event.inputs.cluster }}"
+
+      - name: Upload deploy artifacts
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: anchor-target
+          path: toros-solana/target/deploy/**
+
