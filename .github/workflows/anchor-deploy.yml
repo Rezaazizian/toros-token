@@ -40,11 +40,12 @@ jobs:
       - name: Install Anchor CLI
         run: |
           cargo install --git https://github.com/coral-xyz/anchor anchor-cli --locked
-
       - name: Configure wallet and RPC
         run: |
           export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
-          which solana || true`n                    ls -la $HOME/.local/share/solana/install/active_release/bin || true`n                    mkdir -p $HOME/.config/solana
+          which solana || true
+          ls -la $HOME/.local/share/solana/install/active_release/bin || true
+          mkdir -p $HOME/.config/solana
           if [ -z "$ANCHOR_WALLET_JSON" ]; then
             echo "Missing secret ANCHOR_WALLET" && exit 1
           fi
@@ -54,10 +55,10 @@ jobs:
           if [ -z "$RPC_URL_INPUT" ]; then
             RPC_URL_INPUT="https://api.devnet.solana.com"
           fi
-          $HOME/.local/share/solana/install/active_release/bin/solana config set --url "$RPC_URL_INPUT" --keypair $HOME/.config/solana/id.json
+          "$HOME/.local/share/solana/install/active_release/bin/solana" --version
+          "$HOME/.local/share/solana/install/active_release/bin/solana" config set --url "$RPC_URL_INPUT" --keypair $HOME/.config/solana/id.json
           echo "Using RPC: $RPC_URL_INPUT"
-          $HOME/.local/share/solana/install/active_release/bin/solana-keygen pubkey $HOME/.config/solana/id.json
-
+          "$HOME/.local/share/solana/install/active_release/bin/solana-keygen" pubkey $HOME/.config/solana/id.json
       - name: Build workspace
         working-directory: toros-solana
         run: anchor build
@@ -78,6 +79,7 @@ jobs:
         with:
           name: anchor-target
           path: toros-solana/target/deploy/**
+
 
 
 
