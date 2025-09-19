@@ -54,9 +54,9 @@ jobs:
           if [ -z "$RPC_URL_INPUT" ]; then
             RPC_URL_INPUT="https://api.devnet.solana.com"
           fi
-          solana config set --url "$RPC_URL_INPUT" --keypair $HOME/.config/solana/id.json
+          C:\Users\azizi/.local/share/solana/install/active_release/bin/solana config set --url "$RPC_URL_INPUT" --keypair $HOME/.config/solana/id.json
           echo "Using RPC: $RPC_URL_INPUT"
-          solana-keygen pubkey $HOME/.config/solana/id.json
+          C:\Users\azizi/.local/share/solana/install/active_release/bin/solana-keygen pubkey $HOME/.config/solana/id.json
 
       - name: Build workspace
         working-directory: toros-solana
@@ -78,6 +78,7 @@ jobs:
         with:
           name: anchor-target
           path: toros-solana/target/deploy/**
+
 
 
 
