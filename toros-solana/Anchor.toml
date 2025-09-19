@@ -1,0 +1,13 @@
+[workspace]
+members = ["programs/trs_staking"]
+
+[programs.devnet]
+trs_staking = "TRSStake1111111111111111111111111111111111"
+
+[provider]
+cluster = "Devnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+build = "anchor build"
+deploy = "anchor deploy"
