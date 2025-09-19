@@ -1,0 +1,47 @@
+name: anchor-build
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'toros-solana/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'toros-solana/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: wasm32-unknown-unknown
+          profile: minimal
+          override: true
+
+      - name: Install Solana CLI
+        run: |
+          sh -c "$(curl -sSfL https://release.solana.com/stable/install)" <<< y
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+
+      - name: Install Anchor CLI
+        run: |
+          cargo install --git https://github.com/coral-xyz/anchor anchor-cli --locked
+
+      - name: Build Anchor workspace
+        working-directory: toros-solana
+        run: anchor build
+
+      - name: Upload artifacts
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trs-staking-artifacts
+          path: toros-solana/target/**
+
