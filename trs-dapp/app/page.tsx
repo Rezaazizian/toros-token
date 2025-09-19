@@ -79,6 +79,11 @@ export default function Page() {
     return BigInt(i || '0') * BigInt(10) ** BigInt(DECIMALS) + BigInt(frac || '0');
   }
 
+  function short(addr?: string): string {
+    if (!addr) return '';
+    return addr.slice(0, 4) + '..' + addr.slice(-4);
+  }
+
   async function loadRecentTransfers() {
     if (!publicKey) return;
     try {
@@ -118,12 +123,15 @@ export default function Page() {
           if (delta > 0) direction = 'in';
           else if (delta < 0) direction = 'out';
         }
-        // Try to guess counterparty by scanning account keys for other ATAs of same mint
+        // Determine counterparty by inspecting token balance owners for this mint
         let counterparty: string | undefined;
         try {
-          const accKeys = tx.transaction.message.accountKeys.map((k) => ('pubkey' in k ? k.pubkey.toBase58() : k.toBase58()));
-          const maybeAta = accKeys.find((k) => k !== ataStr && k.length > 40);
-          counterparty = maybeAta;
+          const owners = new Set<string>();
+          for (const b of pre) if (b.mint === TRS_MINT.toBase58() && b.owner) owners.add(b.owner);
+          for (const b of post) if (b.mint === TRS_MINT.toBase58() && b.owner) owners.add(b.owner);
+          owners.delete(publicKey.toBase58());
+          const others = Array.from(owners);
+          if (others.length > 0) counterparty = others[0];
         } catch {}
         items.push({ sig, time: tx.blockTime ?? null, amount, direction, counterparty });
       }
@@ -186,7 +194,29 @@ export default function Page() {
               <span style={{ textTransform: 'uppercase' }}>{r.direction}</span>
               <span> · {r.amount} TRS</span>
               {r.time && <span> · {new Date(r.time * 1000).toLocaleString()}</span>}
-              <span> · <a href={`https://explorer.solana.com/tx/${r.sig}?cluster=devnet`} target="_blank" rel="noreferrer">view</a></span>
+              {r.counterparty && (
+                <span>
+                  {' '}
+                  · {r.direction === 'out' ? 'to' : r.direction === 'in' ? 'from' : ''}{' '}
+                  <code>{short(r.counterparty)}</code>
+                  <button
+                    style={{ marginLeft: 6 }}
+                    onClick={() => navigator.clipboard.writeText(r.counterparty!)}
+                  >
+                    Copy addr
+                  </button>
+                </span>
+              )}
+              <span>
+                {' '}
+                · <a href={`https://explorer.solana.com/tx/${r.sig}?cluster=devnet`} target="_blank" rel="noreferrer">view</a>
+                <button
+                  style={{ marginLeft: 6 }}
+                  onClick={() => navigator.clipboard.writeText(`https://explorer.solana.com/tx/${r.sig}?cluster=devnet`)}
+                >
+                  Copy link
+                </button>
+              </span>
             </li>
           ))}
         </ul>
