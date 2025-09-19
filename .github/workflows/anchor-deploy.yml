@@ -42,8 +42,8 @@ jobs:
         run: |
           cargo install --git https://github.com/coral-xyz/anchor anchor-cli --locked
 
-      - name: Configure wallet and RPC
-        run: |
+      
+          export PATH=\C:\Users\azizi/.local/share/solana/install/active_release/bin:\
           mkdir -p $HOME/.config/solana
           if [ -z "$ANCHOR_WALLET_JSON" ]; then
             echo "Missing secret ANCHOR_WALLET" && exit 1
@@ -78,5 +78,6 @@ jobs:
         with:
           name: anchor-target
           path: toros-solana/target/deploy/**
+
 
 
