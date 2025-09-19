@@ -37,13 +37,13 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y pkg-config libudev-dev libusb-1.0-0-dev
-
       - name: Install Anchor CLI
         run: |
           cargo install --git https://github.com/coral-xyz/anchor anchor-cli --locked
 
-      
-          export PATH=\C:\Users\azizi/.local/share/solana/install/active_release/bin:\
+      - name: Configure wallet and RPC
+        run: |
+          export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
           mkdir -p $HOME/.config/solana
           if [ -z "$ANCHOR_WALLET_JSON" ]; then
             echo "Missing secret ANCHOR_WALLET" && exit 1
@@ -78,6 +78,7 @@ jobs:
         with:
           name: anchor-target
           path: toros-solana/target/deploy/**
+
 
 
 
