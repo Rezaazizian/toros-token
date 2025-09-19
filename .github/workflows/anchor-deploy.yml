@@ -44,7 +44,7 @@ jobs:
       - name: Configure wallet and RPC
         run: |
           export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
-          mkdir -p $HOME/.config/solana
+          which solana || true\r\n          ls -la $HOME/.local/share/solana/install/active_release/bin || true\r\n          mkdir -p $HOME/.config/solana
           if [ -z "$ANCHOR_WALLET_JSON" ]; then
             echo "Missing secret ANCHOR_WALLET" && exit 1
           fi
@@ -78,6 +78,7 @@ jobs:
         with:
           name: anchor-target
           path: toros-solana/target/deploy/**
+
 
 
 
