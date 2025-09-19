@@ -17,7 +17,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       ANCHOR_WALLET_JSON: ${{ secrets.ANCHOR_WALLET }}
-      RPC_URL: ${{ secrets.SOLANA_RPC_URL || 'https://api.devnet.solana.com' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -47,7 +46,13 @@ jobs:
           fi
           echo "$ANCHOR_WALLET_JSON" > $HOME/.config/solana/id.json
           chmod 600 $HOME/.config/solana/id.json
-          solana config set --url "$RPC_URL" --keypair $HOME/.config/solana/id.json
+          RPC_URL_INPUT=${{ secrets.SOLANA_RPC_URL }}
+          if [ -z "$RPC_URL_INPUT" ]; then
+            RPC_URL_INPUT="https://api.devnet.solana.com"
+          fi
+          solana config set --url "$RPC_URL_INPUT" --keypair $HOME/.config/solana/id.json
+          echo "Using RPC: $RPC_URL_INPUT"
+          solana-keygen pubkey $HOME/.config/solana/id.json
 
       - name: Build workspace
         working-directory: toros-solana
