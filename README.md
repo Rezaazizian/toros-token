@@ -39,3 +39,11 @@ A next-generation DeFi token on Solana featuring staking rewards, community gove
    - Click "Refresh TRS Balance"
    - Enter a recipient and amount → "Send"
 
+## ✅ End-to-End Test (Devnet)
+
+1. Ensure both wallets have some devnet SOL (for fees)
+2. Sender connects at the dApp and refreshes TRS balance
+3. Send a small transfer (e.g., 1 TRS) to recipient
+4. In dApp, open "Recent Transfers" and click "view" to confirm on explorer
+5. Recipient checks TRS balance (Phantom or `spl-token accounts --owner <recipient>`)
+
