@@ -1,0 +1,38 @@
+name: dapp-build
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'trs-dapp/**'
+  push:
+    branches: [ main ]
+    paths:
+      - 'trs-dapp/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: trs-dapp
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'trs-dapp/package-lock.json'
+      - name: Install deps
+        run: npm ci || npm install
+      - name: Build
+        run: npm run build
+      - name: Artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trs-dapp-out
+          path: trs-dapp/.next
+
