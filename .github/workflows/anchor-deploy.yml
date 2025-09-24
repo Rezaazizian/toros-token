@@ -31,8 +31,7 @@ jobs:
 
       - name: Install Solana CLI
         run: |
-          yes y | sh -c "$(curl -sSfL https://release.solana.com/stable/install)"
-          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+          yes y | curl -sSfL https://release.solana.com/stable/install | sh -s - -y`r`n          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH`r`n          "$HOME/.local/share/solana/install/active_release/bin/solana" --version
       - name: Install system dependencies
         run: |
           sudo apt-get update
@@ -79,6 +78,7 @@ jobs:
         with:
           name: anchor-target
           path: toros-solana/target/deploy/**
+
 
 
 
