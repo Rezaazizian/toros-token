@@ -28,10 +28,12 @@ jobs:
           target: wasm32-unknown-unknown
           profile: minimal
           override: true
-
       - name: Install Solana CLI
         run: |
-          yes y | curl -sSfL https://release.solana.com/stable/install | sh -s - -y`r`n          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH`r`n          "$HOME/.local/share/solana/install/active_release/bin/solana" --version
+          curl -sSfL https://release.solana.com/stable/install | sh -s - -y
+          "$HOME/.local/share/solana/install/solana-install" init stable
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+          "$HOME/.local/share/solana/install/active_release/bin/solana" --version
       - name: Install system dependencies
         run: |
           sudo apt-get update
@@ -83,6 +85,7 @@ jobs:
         with:
           name: anchor-target
           path: toros-solana/target/deploy/**
+
 
 
 
