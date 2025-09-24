@@ -14,51 +14,62 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest`n    container: ghcr.io/coral-xyz/anchor:latest
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
     env:
       ANCHOR_WALLET_JSON: ${{ secrets.ANCHOR_WALLET }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config libudev-dev libusb-1.0-0-dev build-essential
+
+      - name: Install Solana CLI
+        uses: ajamaica/setup-solana@v0.2.1
+        with:
+          solana-version: stable
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: wasm32-unknown-unknown
+          profile: minimal
+          override: true
+
+      - name: Install Anchor CLI
+        run: |
+          cargo install --git https://github.com/coral-xyz/anchor anchor-cli --locked
+
       - name: Configure wallet and RPC
         run: |
           set -e
-          BIN_DIR="$HOME/solana/bin"
-          if [ ! -x "$BIN_DIR/solana" ]; then BIN_DIR="$HOME/.local/share/solana/install/active_release/bin"; fi
-          if [ ! -x "$BIN_DIR/solana" ]; then BIN_DIR=$(dirname "$(find "$HOME" -type f -name solana -path "*/bin/solana" -print -quit 2>/dev/null || true)"); fi
-          echo "BIN_DIR=$BIN_DIR"
-          if [ ! -x "$BIN_DIR/solana" ]; then
-            BIN_DIR=$(dirname "$(find "$HOME/.local/share/solana" -type f -name solana -path "*/bin/solana" -print -quit 2>/dev/null || true)")
-          fi
-          echo "BIN_DIR=$BIN_DIR"
-          ls -la "$BIN_DIR" || true
-          export PATH="$BIN_DIR:$PATH"
-          which solana || true
-          solana --version || true
-          mkdir -p $HOME/.config/solana
-          if [ -z "$ANCHOR_WALLET_JSON" ]; then
-            echo "Missing secret ANCHOR_WALLET" && exit 1
-          fi
-          echo "$ANCHOR_WALLET_JSON" > $HOME/.config/solana/id.json
-          chmod 600 $HOME/.config/solana/id.json
+          mkdir -p "$HOME/.config/solana"
+          if [ -z "$ANCHOR_WALLET_JSON" ]; then echo "Missing secret ANCHOR_WALLET" && exit 1; fi
+          echo "$ANCHOR_WALLET_JSON" > "$HOME/.config/solana/id.json"
+          chmod 600 "$HOME/.config/solana/id.json"
           RPC_URL_INPUT=${{ secrets.SOLANA_RPC_URL }}
-          if [ -z "$RPC_URL_INPUT" ]; then
-            RPC_URL_INPUT="https://api.devnet.solana.com"
-          fi
-          solana config set --url "$RPC_URL_INPUT" --keypair $HOME/.config/solana/id.json
+          if [ -z "$RPC_URL_INPUT" ]; then RPC_URL_INPUT="https://api.devnet.solana.com"; fi
+          solana --version
+          solana config set --url "$RPC_URL_INPUT" --keypair "$HOME/.config/solana/id.json"
           echo "Using RPC: $RPC_URL_INPUT"
-          solana-keygen pubkey $HOME/.config/solana/id.json      - name: Build workspace
+          solana-keygen pubkey "$HOME/.config/solana/id.json"
+
+      - name: Build workspace
         working-directory: toros-solana
         run: anchor build
 
       - name: Deploy program
         working-directory: toros-solana
         env:
-          ANCHOR_PROVIDER_URL: ${{ env.RPC_URL }}
           ANCHOR_WALLET: ${{ github.workspace }}/.github/anchor_wallet_unused
         run: |
-          # Anchor uses ~/.config/solana/id.json by default; explicit export for clarity
-          export ANCHOR_WALLET=$HOME/.config/solana/id.json
+          export ANCHOR_WALLET="$HOME/.config/solana/id.json"
           anchor deploy -p "${{ github.event.inputs.program }}" --provider.cluster "${{ github.event.inputs.cluster }}"
 
       - name: Upload deploy artifacts
@@ -67,19 +78,3 @@ jobs:
         with:
           name: anchor-target
           path: toros-solana/target/deploy/**
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
