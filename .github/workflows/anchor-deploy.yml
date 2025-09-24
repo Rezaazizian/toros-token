@@ -14,35 +14,12 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest`n    container: ghcr.io/coral-xyz/anchor:latest
     env:
       ANCHOR_WALLET_JSON: ${{ secrets.ANCHOR_WALLET }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          target: wasm32-unknown-unknown
-          profile: minimal
-          override: true
-      - name: Install Solana CLI
-        run: |
-          set -e
-          curl -sSfL https://release.solana.com/stable/solana-release-x86_64-unknown-linux-gnu.tar.bz2 -o solana.tar.bz2
-          mkdir -p $HOME/solana
-          tar -xjf solana.tar.bz2 -C $HOME/solana --strip-components=1
-          echo "$HOME/solana/bin" >> $GITHUB_PATH
-          "$HOME/solana/bin/solana" --version
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y pkg-config libudev-dev libusb-1.0-0-dev
-      - name: Install Anchor CLI
-        run: |
-          cargo install --git https://github.com/coral-xyz/anchor anchor-cli --locked
       - name: Configure wallet and RPC
         run: |
           set -e
@@ -90,6 +67,7 @@ jobs:
         with:
           name: anchor-target
           path: toros-solana/target/deploy/**
+
 
 
 
