@@ -30,10 +30,12 @@ jobs:
           override: true
       - name: Install Solana CLI
         run: |
-          curl -sSfL https://release.solana.com/stable/install | sh -s - -y
-          "$HOME/.local/share/solana/install/solana-install" init stable
-          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
-          "$HOME/.local/share/solana/install/active_release/bin/solana" --version
+          set -e
+          curl -sSfL https://release.solana.com/stable/solana-release-x86_64-unknown-linux-gnu.tar.bz2 -o solana.tar.bz2
+          mkdir -p $HOME/solana
+          tar -xjf solana.tar.bz2 -C $HOME/solana --strip-components=1
+          echo "$HOME/solana/bin" >> $GITHUB_PATH
+          "$HOME/solana/bin/solana" --version
       - name: Install system dependencies
         run: |
           sudo apt-get update
@@ -44,7 +46,10 @@ jobs:
       - name: Configure wallet and RPC
         run: |
           set -e
-          BIN_DIR="$HOME/.local/share/solana/install/active_release/bin"
+          BIN_DIR="$HOME/solana/bin"
+          if [ ! -x "$BIN_DIR/solana" ]; then BIN_DIR="$HOME/.local/share/solana/install/active_release/bin"; fi
+          if [ ! -x "$BIN_DIR/solana" ]; then BIN_DIR=$(dirname "$(find "$HOME" -type f -name solana -path "*/bin/solana" -print -quit 2>/dev/null || true)"); fi
+          echo "BIN_DIR=$BIN_DIR"
           if [ ! -x "$BIN_DIR/solana" ]; then
             BIN_DIR=$(dirname "$(find "$HOME/.local/share/solana" -type f -name solana -path "*/bin/solana" -print -quit 2>/dev/null || true)")
           fi
@@ -85,6 +90,7 @@ jobs:
         with:
           name: anchor-target
           path: toros-solana/target/deploy/**
+
 
 
 
