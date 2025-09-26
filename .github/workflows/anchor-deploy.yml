@@ -42,17 +42,17 @@ jobs:
           echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
           "$HOME/.local/share/solana/install/active_release/bin/solana" --version
 
-      - name: Install Rust nightly
+      - name: Install Rust stable
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: nightly
+          toolchain: stable
           target: wasm32-unknown-unknown
           profile: minimal
           override: true
 
-      - name: Install Anchor CLI
+      - name: Install Anchor CLI (v0.30.1)
         run: |
-          cargo install --git https://github.com/coral-xyz/anchor anchor-cli --locked
+          cargo install --git https://github.com/coral-xyz/anchor anchor-cli --locked --tag v0.30.1
 
       - name: Configure wallet and RPC
         run: |
@@ -82,27 +82,23 @@ jobs:
           if [ -z "$PROG_ID" ]; then echo "Failed to derive program id" >&2; exit 1; fi
           sed -i -E "s|^trs_staking = \".*\"|trs_staking = \"$PROG_ID\"|g" toros-solana/Anchor.toml
           sed -i -E "s|declare_id!\(\"[^\"]+\"\)|declare_id!(\"$PROG_ID\")|g" toros-solana/programs/trs_staking/src/lib.rs
-
-      - name: Align Anchor deps and cargo config
-        run: |
-          set -e
-          sed -i -E "s|anchor-lang\s*=\s*\"0\.30\.1\"|anchor-lang = \"0.31.1\"|g" toros-solana/programs/trs_staking/Cargo.toml || true
-          sed -i -E "s|anchor-spl\s*=\s*\{([^}]*)version:\s*\"0\.30\.1\"|anchor-spl = {\1version: \"0.31.1\"|g" toros-solana/programs/trs_staking/Cargo.toml || true
-          sed -i -E "s|anchor-spl\s*=\s*\"0\.30\.1\"|anchor-spl = \"0.31.1\"|g" toros-solana/programs/trs_staking/Cargo.toml || true
+          # Ensure resolver = "2" to calm cargo warnings
           if ! grep -q '^workspace\.resolver' toros-solana/Cargo.toml 2>/dev/null; then
             printf '\nworkspace.resolver = "2"\n' >> toros-solana/Cargo.toml
           fi
+          # Pin Anchor CLI version in Anchor.toml to match CLI
           if ! grep -q '^\[toolchain\]' toros-solana/Anchor.toml; then
-            printf '\n[toolchain]\nanchor_version = "0.31.1"\n' >> toros-solana/Anchor.toml
+            printf '\n[toolchain]\nanchor_version = "0.30.1"\n' >> toros-solana/Anchor.toml
           else
-            sed -i -E "s|^anchor_version\s*=\s*\".*\"|anchor_version = \"0.31.1\"|g" toros-solana/Anchor.toml
+            sed -i -E "s|^anchor_version\s*=\s*\".*\"|anchor_version = \"0.30.1\"|g" toros-solana/Anchor.toml
           fi
 
       - name: Build workspace
         working-directory: toros-solana
         run: |
+          rustup override set stable
           rm -f Cargo.lock
-          cargo +nightly generate-lockfile
+          cargo generate-lockfile
           anchor build
 
       - name: Deploy program
