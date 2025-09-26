@@ -1,2 +1,9 @@
 [workspace]
 members = [ "programs/trs_staking" ]
+
+
+
+
+[profile.release]
+overflow-checks = true
+
