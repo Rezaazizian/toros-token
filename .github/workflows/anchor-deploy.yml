@@ -42,7 +42,9 @@ jobs:
             sleep 5
           done
           echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
-          "$HOME/.local/share/solana/install/active_release/bin/solana" --version || true
+          SOLANA_BIN_DIR="$HOME/.local/share/solana/install/active_release/bin"
+          "$SOLANA_BIN_DIR/solana" --version || true
+          ls -la "$SOLANA_BIN_DIR" || true
 
       - name: Install Rust
         uses: actions-rs/toolchain@v1
@@ -59,14 +61,18 @@ jobs:
       - name: Configure wallet and RPC
         run: |
           set -e
+          SOLANA_BIN_DIR="$HOME/.local/share/solana/install/active_release/bin"
+          export PATH="$SOLANA_BIN_DIR:$PATH"
+          which solana || true
+          ls -la "$SOLANA_BIN_DIR" || true
           mkdir -p "$HOME/.config/solana"
           if [ -z "$ANCHOR_WALLET_JSON" ]; then echo "Missing secret ANCHOR_WALLET" && exit 1; fi
           echo "$ANCHOR_WALLET_JSON" > "$HOME/.config/solana/id.json"
           chmod 600 "$HOME/.config/solana/id.json"
           RPC_URL_INPUT=${{ secrets.SOLANA_RPC_URL }}
           if [ -z "$RPC_URL_INPUT" ]; then RPC_URL_INPUT="https://api.devnet.solana.com"; fi
-          solana config set --url "$RPC_URL_INPUT" --keypair "$HOME/.config/solana/id.json"
-          solana-keygen pubkey "$HOME/.config/solana/id.json"
+          "$SOLANA_BIN_DIR/solana" config set --url "$RPC_URL_INPUT" --keypair "$HOME/.config/solana/id.json"
+          "$SOLANA_BIN_DIR/solana-keygen" pubkey "$HOME/.config/solana/id.json"
 
       - name: Build workspace
         working-directory: toros-solana
