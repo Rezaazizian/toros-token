@@ -42,8 +42,10 @@ jobs:
           echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
           "$HOME/.local/share/solana/install/active_release/bin/solana" --version
 
-      - name: Install Rust nightly
-        uses: actions-rs/toolchain@v1\n        with:\n          toolchain: 1.75.0
+      - name: Install Rust 1.75.0
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: 1.75.0
           target: wasm32-unknown-unknown
           profile: minimal
           override: true
@@ -97,7 +99,7 @@ jobs:
             sed -i -E "s|^anchor_version\s*=\s*\".*\"|anchor_version = \"0.31.1\"|g" toros-solana/Anchor.toml
           fi
 
-      - name: Build workspace
+      - name: Build workspace (Rust 1.75.0)
         working-directory: toros-solana
         run: |
           rustup override set 1.75.0
