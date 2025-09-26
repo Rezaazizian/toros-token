@@ -76,6 +76,18 @@ jobs:
           if [ -z "$RPC_URL_INPUT" ]; then RPC_URL_INPUT="https://api.devnet.solana.com"; fi
           "$SOLANA_BIN_DIR/solana" config set --url "$RPC_URL_INPUT" --keypair "$HOME/.config/solana/id.json"
           "$SOLANA_BIN_DIR/solana-keygen" pubkey "$HOME/.config/solana/id.json"
+      - name: Prepare program ID
+        run: |
+          set -e
+          mkdir -p toros-solana/target/deploy
+          if [ ! -f toros-solana/target/deploy/trs_staking-keypair.json ]; then
+            solana-keygen new -o toros-solana/target/deploy/trs_staking-keypair.json -f >/dev/null 2>&1
+          fi
+          PROG_ID=$(solana-keygen pubkey toros-solana/target/deploy/trs_staking-keypair.json)
+          echo "Program ID: $PROG_ID"
+          sed -i -E "s|^trs_staking = \".*\"|trs_staking = \"$PROG_ID\"|g" toros-solana/Anchor.toml
+          sed -i -E "s|declare_id!\(\"[^\"]+\"\)|declare_id!(\"$PROG_ID\")|g" toros-solana/programs/trs_staking/src/lib.rs
+          echo 'Updated Anchor.toml and declare_id! with program ID'
 
       - name: Build workspace
         working-directory: toros-solana
