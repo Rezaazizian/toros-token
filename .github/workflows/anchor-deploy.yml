@@ -93,8 +93,7 @@ jobs:
           cat toros-solana/programs/trs_staking/src/lib.rs
 
       - name: Build workspace
-        working-directory: toros-solana
-        run: anchor build
+        working-directory: toros-solana`n        run: |`n          rm -f Cargo.lock`n          anchor build
 
       - name: Deploy program
         working-directory: toros-solana
