@@ -41,12 +41,11 @@ jobs:
           ln -snf "$HOME/.local/share/solana/solana-release/bin" "$HOME/.local/share/solana/install/active_release/bin"
           echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
           "$HOME/.local/share/solana/install/active_release/bin/solana" --version
-          ls -la "$HOME/.local/share/solana/install/active_release/bin"
 
-      - name: Install Rust
+      - name: Install Rust nightly
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
+          toolchain: nightly
           target: wasm32-unknown-unknown
           profile: minimal
           override: true
@@ -60,8 +59,6 @@ jobs:
           set -e
           SOLANA_BIN_DIR="$HOME/.local/share/solana/install/active_release/bin"
           export PATH="$SOLANA_BIN_DIR:$PATH"
-          which solana || true
-          ls -la "$SOLANA_BIN_DIR" || true
           mkdir -p "$HOME/.config/solana"
           if [ -z "$ANCHOR_WALLET_JSON" ]; then echo "Missing secret ANCHOR_WALLET" && exit 1; fi
           echo "$ANCHOR_WALLET_JSON" > "$HOME/.config/solana/id.json"
@@ -76,8 +73,6 @@ jobs:
           set -e
           SOLANA_BIN_DIR="$HOME/.local/share/solana/install/active_release/bin"
           export PATH="$SOLANA_BIN_DIR:$PATH"
-          which solana-keygen || true
-          "$SOLANA_BIN_DIR/solana-keygen" --version || true
           mkdir -p toros-solana/target/deploy
           if [ ! -f toros-solana/target/deploy/trs_staking-keypair.json ]; then
             "$SOLANA_BIN_DIR/solana-keygen" new -o toros-solana/target/deploy/trs_staking-keypair.json -f --no-bip39-passphrase >/dev/null 2>&1
@@ -87,15 +82,27 @@ jobs:
           if [ -z "$PROG_ID" ]; then echo "Failed to derive program id" >&2; exit 1; fi
           sed -i -E "s|^trs_staking = \".*\"|trs_staking = \"$PROG_ID\"|g" toros-solana/Anchor.toml
           sed -i -E "s|declare_id!\(\"[^\"]+\"\)|declare_id!(\"$PROG_ID\")|g" toros-solana/programs/trs_staking/src/lib.rs
-          echo '--- Anchor.toml ---'
-          cat toros-solana/Anchor.toml
-          echo '--- lib.rs ---'
-          cat toros-solana/programs/trs_staking/src/lib.rs
+
+      - name: Align Anchor deps and cargo config
+        run: |
+          set -e
+          sed -i -E "s|anchor-lang\s*=\s*\"0\.30\.1\"|anchor-lang = \"0.31.1\"|g" toros-solana/programs/trs_staking/Cargo.toml || true
+          sed -i -E "s|anchor-spl\s*=\s*\{([^}]*)version:\s*\"0\.30\.1\"|anchor-spl = {\1version: \"0.31.1\"|g" toros-solana/programs/trs_staking/Cargo.toml || true
+          sed -i -E "s|anchor-spl\s*=\s*\"0\.30\.1\"|anchor-spl = \"0.31.1\"|g" toros-solana/programs/trs_staking/Cargo.toml || true
+          if ! grep -q '^workspace\.resolver' toros-solana/Cargo.toml 2>/dev/null; then
+            printf '\nworkspace.resolver = "2"\n' >> toros-solana/Cargo.toml
+          fi
+          if ! grep -q '^\[toolchain\]' toros-solana/Anchor.toml; then
+            printf '\n[toolchain]\nanchor_version = "0.31.1"\n' >> toros-solana/Anchor.toml
+          else
+            sed -i -E "s|^anchor_version\s*=\s*\".*\"|anchor_version = \"0.31.1\"|g" toros-solana/Anchor.toml
+          fi
 
       - name: Build workspace
         working-directory: toros-solana
         run: |
           rm -f Cargo.lock
+          cargo +nightly generate-lockfile
           anchor build
 
       - name: Deploy program
