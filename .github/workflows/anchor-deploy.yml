@@ -30,9 +30,11 @@ jobs:
           sudo apt-get install -y pkg-config libudev-dev libusb-1.0-0-dev build-essential
 
       - name: Install Solana CLI
-        run: |`n          curl -sSfL https://release.solana.com/stable/install | sh -s - -y`n          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH`n          solana --version
-        with:
-          solana-version: stable
+        run: |
+          set -e
+          curl -sSfL https://release.solana.com/stable/install | sh -s - -y
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+          "$HOME/.local/share/solana/install/active_release/bin/solana" --version || true
 
       - name: Install Rust
         uses: actions-rs/toolchain@v1
@@ -55,9 +57,7 @@ jobs:
           chmod 600 "$HOME/.config/solana/id.json"
           RPC_URL_INPUT=${{ secrets.SOLANA_RPC_URL }}
           if [ -z "$RPC_URL_INPUT" ]; then RPC_URL_INPUT="https://api.devnet.solana.com"; fi
-          solana --version
           solana config set --url "$RPC_URL_INPUT" --keypair "$HOME/.config/solana/id.json"
-          echo "Using RPC: $RPC_URL_INPUT"
           solana-keygen pubkey "$HOME/.config/solana/id.json"
 
       - name: Build workspace
@@ -67,10 +67,8 @@ jobs:
       - name: Deploy program
         working-directory: toros-solana
         env:
-          ANCHOR_WALLET: ${{ github.workspace }}/.github/anchor_wallet_unused
-        run: |
-          export ANCHOR_WALLET="$HOME/.config/solana/id.json"
-          anchor deploy -p "${{ github.event.inputs.program }}" --provider.cluster "${{ github.event.inputs.cluster }}"
+          ANCHOR_WALLET: ${{ env.HOME }}/.config/solana/id.json
+        run: anchor deploy -p "${{ github.event.inputs.program }}" --provider.cluster "${{ github.event.inputs.cluster }}"
 
       - name: Upload deploy artifacts
         if: success()
