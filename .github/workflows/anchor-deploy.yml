@@ -80,7 +80,7 @@ jobs:
           "$SOLANA_BIN_DIR/solana-keygen" --version || true
           mkdir -p toros-solana/target/deploy
           if [ ! -f toros-solana/target/deploy/trs_staking-keypair.json ]; then
-            "$SOLANA_BIN_DIR/solana-keygen" new -o toros-solana/target/deploy/trs_staking-keypair.json -f >/dev/null 2>&1
+            "$SOLANA_BIN_DIR/solana-keygen" new -o toros-solana/target/deploy/trs_staking-keypair.json -f --no-bip39-passphrase >/dev/null 2>&1
           fi
           PROG_ID=$("$SOLANA_BIN_DIR/solana-keygen" pubkey toros-solana/target/deploy/trs_staking-keypair.json)
           echo "Program ID: $PROG_ID"
