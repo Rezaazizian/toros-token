@@ -102,10 +102,10 @@ jobs:
       - name: Build workspace
         working-directory: toros-solana
         run: |
-          rustup override set nightly
+          rustup override set stable
           rm -f Cargo.lock
-          cargo +nightly -Z next-lockfile-bump generate-lockfile
-          anchor build
+          cargo generate-lockfile
+          RUSTUP_TOOLCHAIN=stable anchor build
 
       - name: Deploy program
         working-directory: toros-solana
