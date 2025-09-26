@@ -29,22 +29,16 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y pkg-config libudev-dev libusb-1.0-0-dev build-essential bzip2 ca-certificates
 
-      - name: Install Solana CLI (GitHub release fallback)
+      - name: Install Solana CLI (GitHub release)
         run: |
           set -e
           SOLANA_VERSION="1.18.4"
           TARBALL_URL="https://github.com/solana-labs/solana/releases/download/v${SOLANA_VERSION}/solana-release-x86_64-unknown-linux-gnu.tar.bz2"
           echo "Downloading Solana ${SOLANA_VERSION} from ${TARBALL_URL}"
-          for i in {1..6}; do
-            if curl -fL --retry 3 --retry-delay 2 -o /tmp/solana.tar.bz2 "$TARBALL_URL"; then
-              break
-            fi
-            echo "Download failed (attempt $i). Retrying in 5s..."
-            sleep 5
-          done
-          mkdir -p "$HOME/.local/share/solana"
+          curl -fL --retry 3 --retry-delay 2 -o /tmp/solana.tar.bz2 "$TARBALL_URL"
+          mkdir -p "$HOME/.local/share/solana/install/active_release"
           tar -C "$HOME/.local/share/solana" -xjf /tmp/solana.tar.bz2
-          mkdir -p "$HOME/.local/share/solana/install/active_release"; ln -snf "$HOME/.local/share/solana/solana-release/bin" "$HOME/.local/share/solana/install/active_release/bin"
+          ln -snf "$HOME/.local/share/solana/solana-release/bin" "$HOME/.local/share/solana/install/active_release/bin"
           echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
           "$HOME/.local/share/solana/install/active_release/bin/solana" --version
           ls -la "$HOME/.local/share/solana/install/active_release/bin"
@@ -76,18 +70,27 @@ jobs:
           if [ -z "$RPC_URL_INPUT" ]; then RPC_URL_INPUT="https://api.devnet.solana.com"; fi
           "$SOLANA_BIN_DIR/solana" config set --url "$RPC_URL_INPUT" --keypair "$HOME/.config/solana/id.json"
           "$SOLANA_BIN_DIR/solana-keygen" pubkey "$HOME/.config/solana/id.json"
+
       - name: Prepare program ID
         run: |
           set -e
+          SOLANA_BIN_DIR="$HOME/.local/share/solana/install/active_release/bin"
+          export PATH="$SOLANA_BIN_DIR:$PATH"
+          which solana-keygen || true
+          "$SOLANA_BIN_DIR/solana-keygen" --version || true
           mkdir -p toros-solana/target/deploy
           if [ ! -f toros-solana/target/deploy/trs_staking-keypair.json ]; then
-            solana-keygen new -o toros-solana/target/deploy/trs_staking-keypair.json -f >/dev/null 2>&1
+            "$SOLANA_BIN_DIR/solana-keygen" new -o toros-solana/target/deploy/trs_staking-keypair.json -f >/dev/null 2>&1
           fi
-          PROG_ID=$(solana-keygen pubkey toros-solana/target/deploy/trs_staking-keypair.json)
+          PROG_ID=$("$SOLANA_BIN_DIR/solana-keygen" pubkey toros-solana/target/deploy/trs_staking-keypair.json)
           echo "Program ID: $PROG_ID"
+          if [ -z "$PROG_ID" ]; then echo "Failed to derive program id" >&2; exit 1; fi
           sed -i -E "s|^trs_staking = \".*\"|trs_staking = \"$PROG_ID\"|g" toros-solana/Anchor.toml
           sed -i -E "s|declare_id!\(\"[^\"]+\"\)|declare_id!(\"$PROG_ID\")|g" toros-solana/programs/trs_staking/src/lib.rs
-          echo 'Updated Anchor.toml and declare_id! with program ID'
+          echo '--- Anchor.toml ---'
+          cat toros-solana/Anchor.toml
+          echo '--- lib.rs ---'
+          cat toros-solana/programs/trs_staking/src/lib.rs
 
       - name: Build workspace
         working-directory: toros-solana
