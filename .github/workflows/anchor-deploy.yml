@@ -27,24 +27,27 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y pkg-config libudev-dev libusb-1.0-0-dev build-essential
+          sudo apt-get install -y pkg-config libudev-dev libusb-1.0-0-dev build-essential bzip2 ca-certificates
 
-      - name: Install Solana CLI
+      - name: Install Solana CLI (GitHub release fallback)
         run: |
           set -e
+          SOLANA_VERSION="1.18.4"
+          TARBALL_URL="https://github.com/solana-labs/solana/releases/download/v${SOLANA_VERSION}/solana-release-x86_64-unknown-linux-gnu.tar.bz2"
+          echo "Downloading Solana ${SOLANA_VERSION} from ${TARBALL_URL}"
           for i in {1..6}; do
-            echo "Attempt $i to install Solana CLI"
-            if curl -sSfL https://release.solana.com/stable/install | sh -s - -y; then
-              echo "Solana CLI installed"
+            if curl -fL --retry 3 --retry-delay 2 -o /tmp/solana.tar.bz2 "$TARBALL_URL"; then
               break
             fi
-            echo "Install failed, retrying in 5s..."
+            echo "Download failed (attempt $i). Retrying in 5s..."
             sleep 5
           done
+          mkdir -p "$HOME/.local/share/solana"
+          tar -C "$HOME/.local/share/solana" -xjf /tmp/solana.tar.bz2
+          ln -snf "$HOME/.local/share/solana/solana-release/bin" "$HOME/.local/share/solana/install/active_release/bin"
           echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
-          SOLANA_BIN_DIR="$HOME/.local/share/solana/install/active_release/bin"
-          "$SOLANA_BIN_DIR/solana" --version || true
-          ls -la "$SOLANA_BIN_DIR" || true
+          "$HOME/.local/share/solana/install/active_release/bin/solana" --version
+          ls -la "$HOME/.local/share/solana/install/active_release/bin"
 
       - name: Install Rust
         uses: actions-rs/toolchain@v1
