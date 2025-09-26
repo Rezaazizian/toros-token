@@ -43,9 +43,7 @@ jobs:
           "$HOME/.local/share/solana/install/active_release/bin/solana" --version
 
       - name: Install Rust nightly
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: nightly
+        uses: actions-rs/toolchain@v1\n        with:\n          toolchain: 1.75.0
           target: wasm32-unknown-unknown
           profile: minimal
           override: true
@@ -102,10 +100,10 @@ jobs:
       - name: Build workspace
         working-directory: toros-solana
         run: |
-          rustup override set stable
+          rustup override set 1.75.0
           rm -f Cargo.lock
-          cargo generate-lockfile
-          RUSTUP_TOOLCHAIN=stable anchor build
+          cargo +1.75.0 generate-lockfile
+          RUSTUP_TOOLCHAIN=1.75.0 anchor build
 
       - name: Deploy program
         working-directory: toros-solana
