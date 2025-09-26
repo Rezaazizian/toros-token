@@ -32,7 +32,7 @@ jobs:
       - name: Install Solana CLI (GitHub release)
         run: |
           set -e
-          SOLANA_VERSION="1.18.4"
+          SOLANA_VERSION="1.18.26"
           TARBALL_URL="https://github.com/solana-labs/solana/releases/download/v${SOLANA_VERSION}/solana-release-x86_64-unknown-linux-gnu.tar.bz2"
           echo "Downloading Solana ${SOLANA_VERSION} from ${TARBALL_URL}"
           curl -fL --retry 3 --retry-delay 2 -o /tmp/solana.tar.bz2 "$TARBALL_URL"
