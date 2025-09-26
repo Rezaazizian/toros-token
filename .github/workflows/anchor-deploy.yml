@@ -42,17 +42,24 @@ jobs:
           echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
           "$HOME/.local/share/solana/install/active_release/bin/solana" --version
 
-      - name: Install Rust 1.75.0
+      - name: Install Rust 1.82.0 (for Anchor install)
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: 1.82.0
+          profile: minimal
+          override: false
+
+      - name: Install Anchor CLI (v0.31.1)
+        run: |
+          cargo +1.82.0 install --git https://github.com/coral-xyz/anchor anchor-cli --locked
+
+      - name: Install Rust 1.75.0 (for workspace build)
         uses: actions-rs/toolchain@v1
         with:
           toolchain: 1.75.0
           target: wasm32-unknown-unknown
           profile: minimal
-          override: true
-
-      - name: Install Anchor CLI (v0.31.1)
-        run: |
-          cargo install --git https://github.com/coral-xyz/anchor anchor-cli --locked
+          override: false
 
       - name: Configure wallet and RPC
         run: |
@@ -82,7 +89,6 @@ jobs:
           if [ -z "$PROG_ID" ]; then echo "Failed to derive program id" >&2; exit 1; fi
           sed -i -E "s|^trs_staking = \".*\"|trs_staking = \"$PROG_ID\"|g" toros-solana/Anchor.toml
           sed -i -E "s|declare_id!\(\"[^\"]+\"\)|declare_id!(\"$PROG_ID\")|g" toros-solana/programs/trs_staking/src/lib.rs
-          # Ensure resolver = "2"
           if ! grep -q '^workspace\.resolver' toros-solana/Cargo.toml 2>/dev/null; then
             printf '\nworkspace.resolver = "2"\n' >> toros-solana/Cargo.toml
           fi
