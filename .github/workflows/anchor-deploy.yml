@@ -32,7 +32,15 @@ jobs:
       - name: Install Solana CLI
         run: |
           set -e
-          curl -sSfL https://release.solana.com/stable/install | sh -s - -y
+          for i in {1..6}; do
+            echo "Attempt $i to install Solana CLI"
+            if curl -sSfL https://release.solana.com/stable/install | sh -s - -y; then
+              echo "Solana CLI installed"
+              break
+            fi
+            echo "Install failed, retrying in 5s..."
+            sleep 5
+          done
           echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
           "$HOME/.local/share/solana/install/active_release/bin/solana" --version || true
 
