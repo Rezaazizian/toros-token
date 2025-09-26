@@ -44,7 +44,7 @@ jobs:
           done
           mkdir -p "$HOME/.local/share/solana"
           tar -C "$HOME/.local/share/solana" -xjf /tmp/solana.tar.bz2
-          ln -snf "$HOME/.local/share/solana/solana-release/bin" "$HOME/.local/share/solana/install/active_release/bin"
+          mkdir -p "$HOME/.local/share/solana/install/active_release"; ln -snf "$HOME/.local/share/solana/solana-release/bin" "$HOME/.local/share/solana/install/active_release/bin"
           echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
           "$HOME/.local/share/solana/install/active_release/bin/solana" --version
           ls -la "$HOME/.local/share/solana/install/active_release/bin"
