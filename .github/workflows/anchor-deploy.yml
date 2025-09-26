@@ -30,7 +30,7 @@ jobs:
           sudo apt-get install -y pkg-config libudev-dev libusb-1.0-0-dev build-essential
 
       - name: Install Solana CLI
-        uses: ajamaica/setup-solana@v0.2.1
+        run: |`n          curl -sSfL https://release.solana.com/stable/install | sh -s - -y`n          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH`n          solana --version
         with:
           solana-version: stable
 
